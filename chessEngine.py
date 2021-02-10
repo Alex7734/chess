@@ -123,6 +123,9 @@ class GameState():
 					self.board[lastMove.endRow][lastMove.endCol-2] = self.board[lastMove.endRow][lastMove.endCol+1]
 					self.board[lastMove.endRow][lastMove.endCol+1] = "--"
 
+			self.checkMate = False
+			self.staleMate = False
+
 	def getValidMoves(self):
 		tempEnpassantPosible = self.enpassantPossible
 		tempCastleRights = CastleRights(self.currentCastlingRights.wks, self.currentCastlingRights.bks,

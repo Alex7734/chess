@@ -79,7 +79,7 @@ def main():
 
 		# AI decision
 		if not gameOver and not humanTurn:
-			AIMove = AI.findGreedyMove(gs, validMoves)
+			AIMove = AI.findBestMoveNegaMax(gs, validMoves)
 			if AIMove is None:
 				AIMove = AI.findRandomMove(validMoves)
 			gs.makeMove(AIMove)
