@@ -119,7 +119,7 @@ def scoreBoard(gs, board):
 		return 0
 
 	score = 0
-	for row in board:
+	for i, row in enumerate(board):
 		for square in row:
 			if square[0] == "w":
 				score += pieceScore[square[1]]
