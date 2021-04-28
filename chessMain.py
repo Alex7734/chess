@@ -2,6 +2,10 @@ import pygame as pg
 import chessEngine as cE
 import mihocFish as AI
 import pygame_menu
+from multiprocessing import Process, Queue
+from ctypes import windll
+
+SetWindowPos = windll.user32.SetWindowPos
 
 pg.init()
 WIDTH = 512
@@ -13,6 +17,9 @@ IMAGES = {}
 surface = pg.display.set_mode((WIDTH, HEIGHT))
 playerOneVALUE = True
 playerTwoVALUE = False
+
+x, y = 100, 100
+SetWindowPos(pg.display.get_wm_info()['window'], -1, x, y, 0, 0, 0x0001)
 
 def playWith(value, v):
 	global playerOneVALUE, playerTwoVALUE
@@ -48,6 +55,9 @@ def start_the_game():
 	gameOver = False
 	playerOne = playerOneVALUE 
 	playerTwo = playerTwoVALUE
+	AIThinking = False
+	moveFinderProcess = None
+	moveUndone = False
 
 	while running:
 		humanTurn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)
@@ -86,6 +96,10 @@ def start_the_game():
 					gs.undoMove()
 					moveMade = True
 					animate = False
+					if AIThinking:
+						moveFinderProcess.terminate()
+						AIThinking = False
+					moveUndone = True
 				if e.key == pg.K_r:
 					gs = cE.GameState()
 					validMoves = gs.getValidMoves()
@@ -94,17 +108,32 @@ def start_the_game():
 					moveMade = False
 					animate = False
 					gameOver = False
+					if AIThinking:
+						moveFinderProcess.terminate()
+						AIThinking = False
+					moveUndone = True
 				if e.key == pg.K_q:
 					menu.mainloop(surface)
 
 		# AI decision
-		if not gameOver and not humanTurn:
-			AIMove = AI.findBestMoveNegaMax(gs, validMoves)
-			if AIMove is None:
-				AIMove = AI.findRandomMove(validMoves)
-			gs.makeMove(AIMove)
-			moveMade = True
-			animate = True
+		if not gameOver and not humanTurn and not moveUndone:
+			if not AIThinking:
+				AIThinking = True
+				print('thinking...')
+				pg.event.post(pg.event.Event(7734))
+				returnQueue = Queue() # used to pass data between threads
+				moveFinderProcess = Process(target=AI.findBestMoveNegaMax, args=(gs, validMoves, returnQueue))
+				moveFinderProcess.start()
+
+			if not moveFinderProcess.is_alive():
+				print("done thinking")
+				AIMove = returnQueue.get()
+				if AIMove is None:
+					AIMove = AI.findRandomMove(validMoves)
+				gs.makeMove(AIMove)
+				moveMade = True
+				animate = True
+				AIThinking = False
 
 		# Human decision
 		if moveMade:
@@ -113,6 +142,7 @@ def start_the_game():
 			validMoves= gs.getValidMoves()
 			moveMade = False
 			animate = False
+			moveUndone = False
 
 		drawGameState(surface, gs, validMoves, sqSelected)
 
@@ -197,7 +227,7 @@ def drawText(surface, text):
 	textLocation = pg.Rect(0, 0, WIDTH, HEIGHT).move(WIDTH/2 - textObject.get_width()/2, HEIGHT/2 - textObject.get_height()/2)
 	surface.blit(textObject, textLocation)
 
-menu = pygame_menu.Menu(512, 512, 'Mihoc Fish',
+menu = pygame_menu.Menu('Mihoc Fish', 512, 512,
                        theme=pygame_menu.themes.THEME_DEFAULT)
 
 HELP = f'''
@@ -211,7 +241,7 @@ Press RMB to move pieces
 menu.add.selector('', [('Play with white', 1), ('Play with black', 2), ('Let computers play', 3), ('Two player mode', 4)], onchange=playWith)
 menu.add.button('Play', start_the_game)
 menu.add.button('Quit', pygame_menu.events.EXIT)
-menu.add_label(HELP, max_char=-1, font_size=16)
+menu.add.label(HELP, max_char=-1, font_size=16)
 
 if __name__ == "__main__":
 	menu.mainloop(surface)
