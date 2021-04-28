@@ -6,13 +6,6 @@ DEPTH = 2
 def findRandomMove(validMoves):
 	return validMoves[random.randint(0, len(validMoves)-1)]
 
-# Helper caller Min-Max
-def findBestMoveMinMax(gs, validMoves):
-	global nextMove
-	nextMove = None
-	findMoveMinMax(gs, validMoves, DEPTH, gs.whiteToMove)
-	return nextMove
-
 # Helper caller Nega-Max
 def findBestMoveNegaMax(gs, validMoves, returnQueue):
 	global nextMove
@@ -22,37 +15,6 @@ def findBestMoveNegaMax(gs, validMoves, returnQueue):
 	random.shuffle(validMoves)
 	findMoveNegaMax(gs, validMoves, DEPTH, 1 if gs.whiteToMove else -1)
 	returnQueue.put(nextMove)
-
-# Min-Max Alogorithm
-def findMoveMinMax(gs, validMoves, depth, whiteToMove):
-	global nextMove
-	if depth == 0:
-		return scoreBoard(gs, gs.board)
-
-	if whiteToMove:
-		maxScore = -1000
-		for move in validMoves:
-			gs.makeMove(move)
-			nextMoves = gs.getValidMoves()
-			score = findMoveMinMax(gs, nextMoves, depth-1, False)
-			if score > maxScore:
-				maxScore = score
-				if depth == DEPTH:
-					nextMove = move
-			gs.undoMove()
-		return maxScore
-	else:
-		minScore = 1000
-		for move in validMoves:
-			gs.makeMove(move)
-			nextMoves = gs.getValidMoves()
-			score = findMoveMinMax(gs, nextMoves, depth-1, True)
-			if score < minScore:
-				minScore = score
-				if depth == DEPTH:
-					nextMove = move
-			gs.undoMove()
-		return minScore
 
 # Nega-Max Algorithm
 def findMoveNegaMax(gs, validMoves, depth, turnMultiplier):

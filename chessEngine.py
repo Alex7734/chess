@@ -351,6 +351,3 @@ class CastleRights():
 		self.bks = bks
 		self.wqs = wqs
 		self.bqs = bqs
-		
-
-
