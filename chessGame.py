@@ -1,6 +1,6 @@
 import pygame as pg
 import chessEngine as cE
-import mihocFish as AI
+import chessMihocFish as AI
 from multiprocessing import Process, Queue
 
 WIDTH = 512
@@ -13,12 +13,18 @@ playerOneVALUE = True
 playerTwoVALUE = False
 surface = pg.display.set_mode((WIDTH, HEIGHT))
 
+def drawText(surface, text):
+	font = pg.font.SysFont('Helvetica', 32, True, False)
+	textObject = font.render(text, 0, pg.Color('black'))
+	textLocation = pg.Rect(0, 0, WIDTH, HEIGHT).move(WIDTH/2 - textObject.get_width()/2, HEIGHT/2 - textObject.get_height()/2)
+	surface.blit(textObject, textLocation)
+	
 def loadImages():
 	pieces = ['wP', 'wR', 'wB', 'wN', 'wQ', 'wK', 'bP', 'bR', 'bB', 'bN', 'bK', 'bQ']
 	for piece in pieces:
 		IMAGES[piece] = pg.transform.scale(pg.image.load(f"images/{piece}.png"), (SQ_SIZE, SQ_SIZE))
 
-def start_the_game():
+def start_the_game(playerOneVALUE, playerTwoVALUE):
 	clock = pg.time.Clock()
 	surface.fill(pg.Color("white"))
 	gs = cE.GameState()

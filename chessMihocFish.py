@@ -1,6 +1,6 @@
 import random
 import pygame
-from scores import piecePositionScores, pieceScore
+from chessScores import piecePositionScores, pieceScore
 DEPTH = 2
 
 def findRandomMove(validMoves):
